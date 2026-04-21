@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project demonstrates a full data engineering pipeline from transactional source data to analytics-ready models. It uses PostgreSQL as the OLTP source, StreamSets for ingestion, Snowflake RAW storage, and dbt for transformation into MARTS.
+This project demonstrates a full data engineering pipeline from transactional source data to analytics-ready models. It uses PostgreSQL as the OLTP source, StreamSets for ingestion, Snowflake RAW storage, and dbt for transformation into MARTS. Instead of just transforming data, I have simulated how data actually flows from an operational system into an analytical warehouse, and then gets transformed into business insights.
 
 Key capabilities:
 - StreamSets-based ingestion
@@ -18,6 +18,25 @@ Key capabilities:
 ```text
 CSV -> PostgreSQL -> StreamSets -> Snowflake (RAW) -> dbt -> ANALYTICS
 ```
+* postgresql acts as the oltp system where transactional data is generated
+* streamsets is the ingestion layer
+* snowflake is the analytical warehouse
+* and dbt handles transformation and modeling
+
+This separation ensures that operational workloads are not impacted while enabling scalable analytics
+
+
+## Data Sources
+
+### 1. PostgreSQL
+
+* Users table
+* Orders table
+
+### 2. JSON
+
+* User demographics like age, gender, and location
+* Ingested into snowflake as a raw table using a semi-structured format
 
 ### System Design
 
@@ -27,12 +46,15 @@ CSV -> PostgreSQL -> StreamSets -> Snowflake (RAW) -> dbt -> ANALYTICS
    - Keeps OLTP workload separate from analytics
 
 2. Ingestion Layer
-   - StreamSets extracts data from PostgreSQL
+   - StreamSets extracts data from PostgreSQL 
    - Loads into Snowflake RAW schema
    - Preserves source fidelity while enabling downstream transformation
 
 3. Data Warehouse Layer
-   - Snowflake RAW schema stores ingested tables
+   - Snowflake RAW schema stores ingested tables with minimally transformed data
+        - raw.users
+        - raw.orders
+        - raw.demographics_raw
    - dbt builds STAGING and MARTS layers from RAW
 
 4. Transformation Layer
@@ -48,6 +70,7 @@ StreamSets is used to move data from PostgreSQL into Snowflake RAW. It provides:
 - batching and streaming capabilities
 - monitoring and error handling
 - schema handling and metadata enrichment
+[Imp because postgreSQL does not natively support continuous ingestion into snowflake.]
 
 ### Ingestion Flow
 
@@ -59,7 +82,7 @@ JDBC Query Consumer -> Expression Evaluator -> Snowflake
 
 Responsibilities:
 - read transactional records from PostgreSQL via JDBC
-- optionally enrich data with metadata
+- enrich data with metadata
 - write raw data into Snowflake RAW tables
 
 ## Data Warehouse
@@ -113,6 +136,10 @@ This model:
 ### Lineage
 
 The dbt lineage diagram shows how RAW tables flow into STAGING models and then into the final MART. It highlights the dependency chain from source ingestion through dbt transformation to analytics output.
+
+![lineage graph](image.png)
+
+The dbt lineage diagram shows how `RAW` tables flow into `STAGING` models and then merge into the final `MARTS` model, illustrating the dependency chain from source ingestion through transformation to analytics output
 
 ## Data Modeling Decisions
 
@@ -188,6 +215,3 @@ Includes:
   - `35-44`
   - `45+`
 
-![lineage graph](image.png)
-
-The dbt lineage diagram shows how `RAW` tables flow into `STAGING` models and then merge into the final `MARTS` model, illustrating the dependency chain from source ingestion through transformation to analytics output
