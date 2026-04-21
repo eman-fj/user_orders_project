@@ -11,6 +11,15 @@ Key capabilities:
 - dbt model orchestration and testing
 - Analytics-ready summary model
 
+## Tech Stack
+
+* PostgreSQL (source system)
+* DBeaver (data setup and management)
+* StreamSets  (data ingestion)
+* Snowflake (cloud data warehouse)
+* dbt (data transformation and modeling)
+* GitHub (version control)
+  
 ## Architecture
 
 ### High-Level Flow
